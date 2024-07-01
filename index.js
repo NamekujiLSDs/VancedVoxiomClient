@@ -1,4 +1,4 @@
-const { BrowserWindow, dialog, protocol, app, Menu, webContents, shell, ipcMain } = require("electron")
+const { BrowserWindow, dialog, session, protocol, app, Menu, webContents, shell, ipcMain } = require("electron")
 const path = require("path")
 const store = require('electron-store')
 const config = new store()
@@ -108,9 +108,8 @@ function createSplash() {
         update()
     })
 }
-
 //メインウィンドウを作るやつ
-const createMain = () => {
+const createMain = async () => {
     mainWindow = new BrowserWindow({
         x: config.get("x"),
         y: config.get("y"),
@@ -127,12 +126,7 @@ const createMain = () => {
             worldSafeExecuteJavaScript: false,
         },
     })
-    if (config.get("adBlocker")) {
-        console.log("adBlocker is true")
-        ElectronBlocker.fromPrebuiltAdsAndTracking(fetch).then((blocker) => {
-            blocker.enableBlockingInSession(mainWindow.webContents.session);
-        });
-    }
+
     let def = config.get("defPage") ? config.get("defPage") : "default"
     switch (def) {
         case ("default"):
@@ -194,29 +188,8 @@ const createMain = () => {
         } try { settingWindow.close() } catch (e) { }
     });
     Menu.setApplicationMenu(null)
-    //リソーススワップするやつ
-    mainWindow.webContents.session.webRequest.onBeforeRequest(
-        (details, callback) => {
-            if (
-                config.get('swapper') && files.includes(json[details.url])
-            ) {
-                callback({
-                    redirectURL:
-                        'vvc://' +
-                        path.join(
-                            app.getPath('documents'),
-                            '/VVC-Swapper',
-                            json[details.url]
-                        )
-                })
-            } else {
-                callback({})
-            }
-        }
-    )
     //新しいウィンドウの挙動を変更する
     mainWindow.webContents.on("new-window", (e, v) => {
-        console.log(e)
         console.log(v)
         e.preventDefault()
         if (v.startsWith("https://voxiom.io/assets/pages") || v.startsWith("https://voxiom.io/package")) {
@@ -231,7 +204,6 @@ const createMain = () => {
         mainWindow.webContents.send("injectScript", config.get("customJs"))
     })
     mainWindow.webContents.on("will-navigate", (e, v) => {
-        console.log(e)
         console.log(v)
         if (v.startsWith("https://voxiom.io/assets/pages")) {
             e.preventDefault()
@@ -244,6 +216,25 @@ const createMain = () => {
         } else {
             e.preventDefault()
             shell.openExternal(v)
+        }
+    })
+
+    // ElectronBlocker.fromLists(fetch, ["https://easylist.to/easylist/easylist.txt"]).then((blocker) => {
+    //     blocker.enableBlockingInSession(mainWindow.webContents.session)
+    // })
+    // blocker.enableBlockingInSession(mainWindow.webContents.session);
+
+    //リソーススワッパーのやつ
+    mainWindow.webContents.session.webRequest.onBeforeRequest((details, callback) => {
+        if (
+            config.get('swapper') && files.includes(json[details.url])
+        ) {
+            console.log('vvc://' + path.join(app.getPath('documents'), '/VVC-Swapper', json[details.url]));
+            callback({
+                redirectURL: 'vvc://' + path.join(app.getPath('documents'), '/VVC-Swapper', json[details.url])
+            })
+        } else {
+            callback({})
         }
     })
 }
@@ -538,24 +529,7 @@ const testConfigs = () => {
     config.get("betterDebugDisplay") === !null ? log.info("betterDebugDisplay : " + config.get("betterDebugDisplay")) : (config.set("betterDebugDisplay", false), log.info("Set value for betterDebugDisplay"))
     config.get("adBlocker") === !null ? log.info("adBlocker : " + config.get("adBlocker")) : (config.set("adBlocker", false), log.info("Set value for adBlocker"));
 }
-//アプリの準備ができたら保存されている設定を確認し、その後スプラッシュウィンドウを作成する
-app.whenReady().then(() => {
+app.on("ready", () => {
     testConfigs()
     createSplash()
 })
-
-// 日時フォーマット関数
-function getFormattedDate() {
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = ('0' + (date.getMonth() + 1)).slice(-2);
-    const day = ('0' + date.getDate()).slice(-2);
-    const hours = ('0' + date.getHours()).slice(-2);
-    const minutes = ('0' + date.getMinutes()).slice(-2);
-    const seconds = ('0' + date.getSeconds()).slice(-2);
-    return `${year}${month}${day}${hours}${minutes}${seconds}`;
-}
-
-// ログファイル名の設定
-const logFileName = `${getFormattedDate()}.log`;
-log.transports.file.file = path.join(log.transports.file.getFile().path, '..', logFileName);
