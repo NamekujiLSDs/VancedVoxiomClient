@@ -99,6 +99,10 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log(setting)
         localStorage.setItem("persist:root", setting)
     })
+
+})
+ipcRenderer.on("console", (e, v) => {
+    console.log(v)
 })
 window.addEventListener('resize', () => {
     windowResize()

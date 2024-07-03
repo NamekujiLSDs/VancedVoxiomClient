@@ -8,8 +8,6 @@ const fs = require('fs')
 const log = require('electron-log')
 const iconv = require('iconv-lite');
 const chardet = require('chardet');
-const { ElectronBlocker } = require("@cliqz/adblocker-electron")
-const fetch = require('cross-fetch')
 
 Object.defineProperty(app, 'isPackaged', {
     get() {
@@ -20,6 +18,7 @@ Object.defineProperty(app, 'isPackaged', {
 let mainWindow
 let settingWindow
 let splashWindow
+let fetchedUrls
 
 //カスタムプロトコルの登録
 app.on('ready', () => {
@@ -126,7 +125,6 @@ const createMain = async () => {
             worldSafeExecuteJavaScript: false,
         },
     })
-
     let def = config.get("defPage") ? config.get("defPage") : "default"
     switch (def) {
         case ("default"):
@@ -184,6 +182,13 @@ const createMain = async () => {
             config.set({ x, y, width, height })
             config.set("fullscreen", mainWindow.isFullScreen())
             config.set("maximize", mainWindow.isMaximized())
+            // fs.writeFile(path.join(app.getPath("documents"), "urls.txt"), fetchedUrls, (err) => {
+            //     if (err) {
+            //         console.error('ファイルの保存中にエラーが発生しました:', err);
+            //     } else {
+            //         console.log('ファイルが正常に保存されました:');
+            //     }
+            // });
             mainWindow.destroy()
         } try { settingWindow.close() } catch (e) { }
     });
@@ -218,25 +223,25 @@ const createMain = async () => {
             shell.openExternal(v)
         }
     })
-
-    // ElectronBlocker.fromLists(fetch, ["https://easylist.to/easylist/easylist.txt"]).then((blocker) => {
-    //     blocker.enableBlockingInSession(mainWindow.webContents.session)
-    // })
-    // blocker.enableBlockingInSession(mainWindow.webContents.session);
-
+    mainWindow.webContents.send("console", reject)
     //リソーススワッパーのやつ
     mainWindow.webContents.session.webRequest.onBeforeRequest((details, callback) => {
-        if (
-            config.get('swapper') && files.includes(json[details.url])
-        ) {
-            console.log('vvc://' + path.join(app.getPath('documents'), '/VVC-Swapper', json[details.url]));
+        fetchedUrls += details.url + "\n"
+        if (config.get('swapper') && files.includes(json[details.url])) {
+            log.info("Swapped :", details.url, "to", 'vvc://' + path.join(app.getPath('documents'), '/VVC-Swapper', json[details.url]))
             callback({
                 redirectURL: 'vvc://' + path.join(app.getPath('documents'), '/VVC-Swapper', json[details.url])
             })
+        } else if (containsAnySubstr(details.url, reject)) {
+            log.info("Blocked :", details.url)
+            callback({ cancel: true })
         } else {
             callback({})
         }
     })
+}
+function containsAnySubstr(str, substrings) {
+    return substrings.some(substring => str.includes(substring));
 }
 //リソーススワッパーの部分
 const swapperJson = () => {
@@ -246,6 +251,17 @@ const swapperJson = () => {
     try {
         let data = fs.readFileSync(filePath, 'utf8')
         const jsonContent = JSON.parse(data)
+        return jsonContent
+    } catch (e) { }
+}
+const rejectJson = () => {
+    const filePath = swapper().includes('rejectConfig.json')
+        ? path.join(app.getPath('documents'), '/VVC-Swapper', 'rejectConfig.json')
+        : path.join(__dirname, 'js/rejectConfig.json')
+    try {
+        let data = fs.readFileSync(filePath, 'utf8')
+        let jsonContent = JSON.parse(data)
+        jsonContent = jsonContent.reject
         return jsonContent
     } catch (e) { }
 }
@@ -259,7 +275,8 @@ const swapper = () => {
 }
 let files = swapper()
 let json = swapperJson()
-
+let reject = rejectJson()
+console.log(reject)
 
 
 //設定ウィンドウを開くやつ
@@ -527,7 +544,7 @@ const testConfigs = () => {
     config.get("angleType") === !null ? log.info("angleType : " + config.get("angleType")) : (config.set("angleType", "default"), log.info("Set value for angleType"))
     config.get("customCSS") === !null ? log.info("customCSS : " + config.get("customCSS")) : (config.set("customCSS", "@import url('https://namekujilsds.github.io/VVC/default.css');"), log.info("Set value for customCSS"))
     config.get("betterDebugDisplay") === !null ? log.info("betterDebugDisplay : " + config.get("betterDebugDisplay")) : (config.set("betterDebugDisplay", false), log.info("Set value for betterDebugDisplay"))
-    config.get("adBlocker") === !null ? log.info("adBlocker : " + config.get("adBlocker")) : (config.set("adBlocker", false), log.info("Set value for adBlocker"));
+    // config.get("adBlocker") === !null ? log.info("adBlocker : " + config.get("adBlocker")) : (config.set("adBlocker", false), log.info("Set value for adBlocker"));
 }
 app.on("ready", () => {
     testConfigs()
