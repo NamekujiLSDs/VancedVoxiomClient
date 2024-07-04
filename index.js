@@ -534,16 +534,16 @@ const testConfigs = () => {
     console.log(config.get("customCSS"))
     console.log(config.get("betterDebugDisplay"))
 
-    config.get("crosshair") === !null ? log.info("crosshair : " + config.get("crosshair")) : (config.set("crosshair", "https://namekujilsds.github.io/CROSSHAIR/img/Cross-lime.png"), log.info("Set value for crosshair"))
+    config.get("crosshair") !== null ? log.info("crosshair : " + config.get("crosshair")) : (config.set("crosshair", "https://namekujilsds.github.io/CROSSHAIR/img/Cross-lime.png"), log.info("Set value for crosshair"))
     // config.get("fpsDisplay") ? log.info(config.get("fpsDisplay")) : (config.set("fpsDisplay", true), log.info("Set value for fpsDisplay"))
     // config.get("fpsPosition") ? log.info(config.get("fpsPosition")) : (config.set("fpsPosition", "bottomRight"), log.info("Set value for fpsPosition"))
-    config.get("enableCrosshair") === !null ? log.info("enableCrosshair : " + config.get("enableCrosshair")) : (config.set("enableCrosshair", true), log.info("Set value for enableCrosshair"))
-    config.get("unlimitedFps") === !null ? log.info("unlimitedFps : " + config.get("unlimitedFps")) : (config.set("unlimitedFps", true), log.info("Set value for unlimitedFps"))
-    config.get("defPage") === !null ? log.info("defPage : " + config.get("defPage")) : (config.set("defPage", "default"), log.info("Set value for defPage"))
-    config.get("swapper") === !null ? log.info("swapper : " + config.get("swapper")) : (config.set("swapper", true), log.info("Set value for swapper"))
-    config.get("angleType") === !null ? log.info("angleType : " + config.get("angleType")) : (config.set("angleType", "default"), log.info("Set value for angleType"))
-    config.get("customCSS") === !null ? log.info("customCSS : " + config.get("customCSS")) : (config.set("customCSS", "@import url('https://namekujilsds.github.io/VVC/default.css');"), log.info("Set value for customCSS"))
-    config.get("betterDebugDisplay") === !null ? log.info("betterDebugDisplay : " + config.get("betterDebugDisplay")) : (config.set("betterDebugDisplay", false), log.info("Set value for betterDebugDisplay"))
+    config.get("enableCrosshair") !== null ? log.info("enableCrosshair : " + config.get("enableCrosshair")) : (config.set("enableCrosshair", true), log.info("Set value for enableCrosshair"))
+    config.get("unlimitedFps") !== null ? log.info("unlimitedFps : " + config.get("unlimitedFps")) : (config.set("unlimitedFps", true), log.info("Set value for unlimitedFps"))
+    config.get("defPage") !== null ? log.info("defPage : " + config.get("defPage")) : (config.set("defPage", "default"), log.info("Set value for defPage"))
+    config.get("swapper") !== null ? log.info("swapper : " + config.get("swapper")) : (config.set("swapper", true), log.info("Set value for swapper"))
+    config.get("angleType") !== null ? log.info("angleType : " + config.get("angleType")) : (config.set("angleType", "default"), log.info("Set value for angleType"))
+    config.get("customCSS") !== null ? log.info("customCSS : " + config.get("customCSS")) : (config.set("customCSS", "@import url('https://namekujilsds.github.io/VVC/default.css');"), log.info("Set value for customCSS"))
+    config.get("betterDebugDisplay") !== null ? log.info("betterDebugDisplay : " + config.get("betterDebugDisplay")) : (config.set("betterDebugDisplay", false), log.info("Set value for betterDebugDisplay"))
     // config.get("adBlocker") === !null ? log.info("adBlocker : " + config.get("adBlocker")) : (config.set("adBlocker", false), log.info("Set value for adBlocker"));
 }
 app.on("ready", () => {
