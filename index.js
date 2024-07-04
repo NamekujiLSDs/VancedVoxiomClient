@@ -9,6 +9,21 @@ const log = require('electron-log')
 const iconv = require('iconv-lite');
 const chardet = require('chardet');
 
+(() => {
+    const d = new Date();
+    const prefix = d.getFullYear() + "-" +
+        ('00' + (d.getMonth() + 1)).slice(-2) +
+        ('00' + (d.getDate())).slice(-2) + "-" +
+        ('00' + (d.getHours())).slice(-2) + "." +
+        ('00' + (d.getMinutes())).slice(-2) + "." +
+        ('00' + (d.getSeconds())).slice(-2);
+
+    const curr = log.transports.file.fileName;
+    log.transports.file.fileName = `${prefix}_${curr}`;
+})();
+
+log.info('Change filename');
+log.info('Change filename');
 Object.defineProperty(app, 'isPackaged', {
     get() {
         return true
@@ -18,7 +33,6 @@ Object.defineProperty(app, 'isPackaged', {
 let mainWindow
 let settingWindow
 let splashWindow
-let fetchedUrls
 
 //カスタムプロトコルの登録
 app.on('ready', () => {
@@ -182,13 +196,6 @@ const createMain = async () => {
             config.set({ x, y, width, height })
             config.set("fullscreen", mainWindow.isFullScreen())
             config.set("maximize", mainWindow.isMaximized())
-            // fs.writeFile(path.join(app.getPath("documents"), "urls.txt"), fetchedUrls, (err) => {
-            //     if (err) {
-            //         console.error('ファイルの保存中にエラーが発生しました:', err);
-            //     } else {
-            //         console.log('ファイルが正常に保存されました:');
-            //     }
-            // });
             mainWindow.destroy()
         } try { settingWindow.close() } catch (e) { }
     });
@@ -226,7 +233,6 @@ const createMain = async () => {
     mainWindow.webContents.send("console", reject)
     //リソーススワッパーのやつ
     mainWindow.webContents.session.webRequest.onBeforeRequest((details, callback) => {
-        fetchedUrls += details.url + "\n"
         if (config.get('swapper') && files.includes(json[details.url])) {
             log.info("Swapped :", details.url, "to", 'vvc://' + path.join(app.getPath('documents'), '/VVC-Swapper', json[details.url]))
             callback({
