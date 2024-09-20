@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="closer"></div>
+    <div id="settingWindow">
+        <h2 id="catTitle">general</h2>
+        <div class="setBox">
+            <label for="customCrosshair">Enable Custom Crosshair
+                <input type="checkbox" name="customCrosshair" id="customCrosshair">
+            </label>
+        </div>
+        <div class="setBox">
+            <label for="crosshairType">Crosshair Type
+                <select name="crosshairType" id="crosshairType">
+                    <option value="Image">Image</option>
+                    <option value="Precision">Precision</option>
+                </select>
+            </label>
+        </div>
+        <div class="setBox crosshairImage">
+            <label for="crosshairImage">Crosshair Image
+                <input type="url" name="crosshairImage" id="crosshairImage">
+            </label>
+        </div>
+        <div class="setBox crosshairPrecision">
+            <label for="crosshairOpacityNum">Crosshair Opacity
+                <input type="number" name="crosshairOpacity" id="crosshairOpacityNum" min="0" max="1" step=".1"
+                    oninput="changeSettingVal(this)">
+                <input type="range" name="crosshairOpacity" id="crosshairOpacityRange" min="0" max="1" step=".1"
+                    oninput="changeSettingVal(this)">
+            </label>
+            <label for="crosshairColor">Crosshair Color
+                <input type="color" name="crosshairColor" id="crosshairColor" onchange="changeSettingVal(this)">
+            </label>
+            <label for="crosshairWidthNum">Crosshair Width
+                <input type="number" name="crosshairWidthNum" id="crosshairWidthNum" oninput="changeSettingVal(this)">
+                <input type="range" name="crosshairWidthRange" id="crosshairWidthRange"
+                    oninput="changeSettingVal(this)">
+            </label>
+            <label for="crosshairLengthNum">Crosshair Length
+                <input type="number" name="crosshairLengthNum" id="crosshairLengthNum" oninput="changeSettingVal(this)">
+                <input type="range" name="crosshairLengthRange" id="crosshairLengthRange"
+                    oninput="changeSettingVal(this)">
+            </label>
+        </div>
+    </div>
+    <script>
+        const changeSettingVal = (v) => {
+            console.log(v.value)
+            console.log(v.id)
+            if (v.id.includes("Range")) {
+                let newId = v.id.replace("Range", "Num")
+                console.log(newId)
+                document.getElementById(newId).value = v.value
+            } else if ((v.id.includes("Num"))) {
+                let newId = v.id.replace("Num", "Range")
+                console.log(newId)
+                document.getElementById(newId).value = v.value
+            }
+        }
+    </script>
+</body>
+
+</html>

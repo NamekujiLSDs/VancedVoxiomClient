@@ -6,32 +6,15 @@ const shortcut = require("electron-localshortcut")
 const { autoUpdater } = require('electron-updater')
 const fs = require('fs')
 const log = require('electron-log')
-const iconv = require('iconv-lite');
-const chardet = require('chardet');
 
-(() => {
-    const d = new Date();
-    const prefix = d.getFullYear() + "-" +
-        ('00' + (d.getMonth() + 1)).slice(-2) +
-        ('00' + (d.getDate())).slice(-2) + "-" +
-        ('00' + (d.getHours())).slice(-2) + "." +
-        ('00' + (d.getMinutes())).slice(-2) + "." +
-        ('00' + (d.getSeconds())).slice(-2);
-
-    const curr = log.transports.file.fileName;
-    log.transports.file.fileName = `${prefix}_${curr}`;
-})();
-
-log.info('Change filename');
-log.info('Change filename');
+//Skip checkForUpdates...の問題を修正するためのもの
 Object.defineProperty(app, 'isPackaged', {
     get() {
-        return true
+        return true;
     }
-})
+});
 
 let mainWindow
-let settingWindow
 let splashWindow
 
 //カスタムプロトコルの登録
@@ -135,7 +118,7 @@ const createMain = async () => {
         webPreferences: {
             webSecurity: false,
             contextIsolation: true,
-            preload: path.join(__dirname, "./js/pre-game.js"),
+            preload: path.join(__dirname, "./js/preload.js"),
             worldSafeExecuteJavaScript: false,
         },
     })
@@ -148,15 +131,17 @@ const createMain = async () => {
             mainWindow.loadURL("https://voxiom.io/experimental")
             break
     }
-    mainWindow.setTitle("Vanced Voxiom Client v" + app.getVersion())
+    mainWindow.setTitle("Vanced Voxiom Client | Discontinued")
     mainWindow.webContents.on('will-prevent-unload', e => {
         e.preventDefault()
     })
     //ショートカットキーを設定する
     shortcut.register(mainWindow, "F1", () => {
-        settingDisplay("open")
+        //メインウィンドウにopenSettingを送る。ipcRendererで受け取り
+        mainWindow.webContents.send("openSetting")
     })
     shortcut.register(mainWindow, "F5", () => {
+        //メインウィンドウにreloadを送る。ipcRendererで受け取り
         mainWindow.webContents.send("reload")
     })
     shortcut.register(mainWindow, 'F11', () => {
@@ -167,26 +152,20 @@ const createMain = async () => {
     shortcut.register(mainWindow, "F12", () => {
         mainWindow.webContents.openDevTools()
     })
-    shortcut.register(mainWindow, "0", () => {
-        let v = config.get("betterDebugDisplay")
-        mainWindow.webContents.send("betterDebugDisplay", v)
-    })
-    //表示の準備ができたらメインウィンドウを表示してスプラッシュウィンドウを破壊する
+    // shortcut.register(mainWindow, "0", () => {
+    //     let v = config.get("betterDebugDisplay")
+    //     mainWindow.webContents.send("betterDebugDisplay", v)
+    // })
+
+    //表示の準備ができたらメインウィンドウを表示してスプラッシュウィンドウを破棄する
     mainWindow.once("ready-to-show", () => {
         config.get("maximize") ? mainWindow.maximize() : "";
         mainWindow.show()
         splashWindow.destroy()
-        // createCrosshair()
     })
     //ページのタイトルを固定する
     mainWindow.on('page-title-updated', e => {
         e.preventDefault()
-    })
-    //メインウィンドウが前面に来た時に設定を隠す
-    mainWindow.on('focus', () => {
-        if (settingWindow) {
-            settingWindow.hide()
-        }
     })
     //閉じるときの処理
     mainWindow.on('close', () => {
@@ -212,9 +191,7 @@ const createMain = async () => {
             shell.openExternal(v)
         }
     });
-    mainWindow.webContents.on('did-start-loading', e => {
-        mainWindow.webContents.send("injectScript", config.get("customJs"))
-    })
+
     mainWindow.webContents.on("will-navigate", (e, v) => {
         console.log(v)
         if (v.startsWith("https://voxiom.io/assets/pages")) {
@@ -229,6 +206,10 @@ const createMain = async () => {
             e.preventDefault()
             shell.openExternal(v)
         }
+    })
+    //カスタムJSを読み込ませる
+    mainWindow.webContents.on('did-start-loading', e => {
+        mainWindow.webContents.send("injectScript", config.get("customJs"))
     })
     mainWindow.webContents.send("console", reject)
     //リソーススワッパーのやつ
@@ -245,6 +226,9 @@ const createMain = async () => {
             callback({})
         }
     })
+    // メインウィンドウに設定の一覧を送信する
+    let settingListData = JSON.parse(fs.readFileSync("./js/setting.json", "utf8"));
+    mainWindow.webContents.send("setList",settingListData)
 }
 function containsAnySubstr(str, substrings) {
     return substrings.some(substring => str.includes(substring));
@@ -284,225 +268,11 @@ let json = swapperJson()
 let reject = rejectJson()
 console.log(reject)
 
-
-//設定ウィンドウを開くやつ
-const settingDisplay = (v) => {
-    if (settingWindow) {
-        settingWindow.show()
-        log.info("settingWindow exist")
-    } else if (!settingWindow) {
-        log.info("settingWindow null")
-        settingWindow = new BrowserWindow({
-            height: 800,
-            width: 750,
-            x: 0,
-            y: 0,
-            icon: "./icon.ico",
-            webPreferences: {
-                contextIsolation: true,
-                preload: path.join(__dirname, "./js/pre-setting.js"),
-            }
-        })
-    }
-    settingWindow.loadFile(path.join(__dirname, "./html/setting.html"))
-    shortcut.register(settingWindow, "F12", () => {
-        settingWindow.webContents.openDevTools()
-    })
-    settingWindow.on('close', function (e) {
-        if (mainWindow.isDestroyed()) {
-        } else if (!mainWindow.isDestroyed()) {
-            e.preventDefault();
-            settingWindow.hide();
-        }
-    })
-}
-
-//設定を保存したりpre-game.jsに送信するためのスクリプト
-ipcMain.on("setting", (e, n, v) => {
-    //設定を保存
-    config.set(n, v)
-    //mainWindowに送信している
-    mainWindow.webContents.send("setSetting", n, v)
-})
-//設定を読み込む
-ipcMain.on("loadSettings", (e, n) => {
-    //設定を読み出し
-    let v = config.get(n, true)
-    //読みだした設定をsettingWindowに送信
-    e.sender.send("loadedSetting", n, v)
-})
 //アプリのバージョンを返す
 ipcMain.on("appVer", e => {
     e.sender.send("appVerRe", app.getVersion())
-    // log.info("sender\n", e.sender)
 })
-//ゲームに参加する
-ipcMain.on("joinGame", (e, v) => {
-    // log.info(e, v)
-    mainWindow.loadURL(v);
-    settingWindow.hide()
-})
-//ゲームのリンクを取得する
-ipcMain.handle("invLink", e => {
-    // log.info(mainWindow.webContents.getURL())
-    return mainWindow.webContents.getURL()
-})
-ipcMain.handle("getSetting", (e, n) => {
-    // log.info(config.get(n, true))
-    return config.get(n, true)
-})
-//リロードとリスタート
-ipcMain.on("reload", e => {
-    mainWindow.webContents.send("reload")
-})
-ipcMain.handle("getVal", (e, n) => {
-    return config.get(n, "")
-})
-//クライアントの設定を初期化する
-ipcMain.on("restore", e => {
-    const { dialog } = require('electron')
-    let options = {
-        type: 'question',
-        buttons: ['Yes', 'No'],
-        defaultId: 0,
-        title: 'Restore client settings',
-        message: 'Do you really want to restore client settings? This cannot be undone.',
-    }
-    dialog.showMessageBox(options).then((response) => {
-        log.info("Restore setting " + response.response)
-        switch (response.response) {
-            case (0):
-                log.info("0")
-                config.clear()
-                app.relaunch();
-                app.exit();
-                break
-            case (1):
-                log.info("Restore client setting is Cancelled")
-                break
-        }
-    })
-})
-//cacheを削除する
-ipcMain.on("clearCache", e => {
-    let options = {
-        type: 'question',
-        buttons: ['Yes', 'No'],
-        defaultId: 0,
-        title: 'Clear cache',
-        message: 'After clearing the cache, the client will be restarted.',
-    }
-    dialog.showMessageBox(options).then((response) => {
-        log.info("Clear cache " + response.response)
-        switch (response.response) {
-            case (0):
-                session.defaultSession.clearCache()
-                app.relaunch()
-                app.exit()
-                break
-            case (1):
-                log.info("Clear cache is Cancelled")
-                break
-        }
-    })
-})
-//クライアントの設定のインポート
-ipcMain.on("import", e => {
-    dialog.showOpenDialog(settingWindow, {
-        title: "Open exported setting file.",
-        properties: ['openFile'],
-        filters: [
-            { name: 'text', extensions: ['txt'] }
-        ]
-    }).then(result => {
-        if (!result.canceled) {
-            return result.filePaths[0]
-        }
-    }).then(data => {
-        console.log(data)
-        const encoding = chardet.detectFileSync(data);
-        console.log(encoding)
-        return iconv.decode(fs.readFileSync(data), encoding);
-    }).then(data => {
-        console.log(data)
-        mainWindow.webContents.send("importGameSetting", data)
-    })
-})
-//クライアントの設定のエクスポート
-ipcMain.on("export", e => {
-    mainWindow.webContents.send("givePersist")
-})
-ipcMain.on("returnPersist", (e, v) => {
-    console.log(v)
-    function getFormattedDate() {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0'); // 月は0から始まるため+1する
-        const day = String(now.getDate()).padStart(2, '0');
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        return `${year}${month}${day}${hours}${minutes}${seconds}`;
-    }
-    console.log(getFormattedDate());
-    let nowDate = getFormattedDate()
-    dialog.showSaveDialog({
-        title: '名前を付けて保存',
-        properties: ['saveFiles'],
-        defaultPath: path.join(app.getPath('documents'), 'VoxiomSetting' + nowDate + '.txt'),
-        filters: [
-            { name: 'Text Files', extensions: ['txt'] },
-            { name: 'All Files', extensions: ['*'] },
-        ],
-    }).then(data => {
-        console.log(data);
-        if (!data.canceled && data.filePath) {
-            fs.writeFileSync(data.filePath, v, 'utf8');
-        } else {
-        }
-    });
-})
-//mainWindowでページがロードされたことを受け取る
-ipcMain.on("pageLoaded", e => {
-    mainWindow.webContents.send('crosshairGen', config.get('crosshair'), config.get('enableCrosshair', true))
-    mainWindow.webContents.send('cssGen', config.get('customCSS', ""))
-    mainWindow.webContents.send('fpsDisplay', config.get("fpsDisplay", true), config.get("fpsPosition"))
-    mainWindow.webContents.send('appName', app.getVersion())
-    mainWindow.webContents.send('loadJs', config.get("customJs", `console.log("Nothing Loaded")`))
-})
-ipcMain.on("openLink", (e, v) => {
-    switch (v) {
-        case ("voxiom"):
-            let def = config.get("defPage") ? config.get("defPage") : "default";
-            switch (def) {
-                case ("default"):
-                    mainWindow.loadURL("https://voxiom.io/")
-                    break
-                case ("experimental"):
-                    mainWindow.loadURL("https://voxiom.io/experimental")
-            }
-            break;
-        case ("addGoogle"):
-            mainWindow.loadURL("https://accounts.google.com/v3/signin/identifier?flowName=GlifWebSignIn")
-            break;
-        case ("logGoogle"):
-            mainWindow.loadURL("https://voxiom.io/auth/google")
-            break;
-        case ("addDiscord"):
-            mainWindow.loadURL("https://discord.com/login")
-            break;
-        case ("logDiscord"):
-            mainWindow.loadURL("https://voxiom.io/auth/discord")
-            break;
-        case ("addFacebook"):
-            mainWindow.loadURL("https://facebook.com")
-            break;
-        case ("logFacebook"):
-            mainWindow.loadURL("https://voxiom.io/auth/facebook")
-            break;
 
-    }
-})
 //いつもの
 const initFlags = () => {
     const flaglist = [
@@ -527,32 +297,8 @@ const initFlags = () => {
     app.commandLine.appendSwitch("enable-heavy-ad-intervention")
 }
 initFlags()
-//起動時にコンフィグを確認する
-const testConfigs = () => {
-    console.log(config.get("crosshair"))
-    // console.log(config.get("fpsDisplay"))
-    // console.log(config.get("fpsPosition"))
-    console.log(config.get("enableCrosshair"))
-    console.log(config.get("unlimitedFps"))
-    console.log(config.get("defPage"))
-    console.log(config.get("swapper"))
-    console.log(config.get("angleType"))
-    console.log(config.get("customCSS"))
-    console.log(config.get("betterDebugDisplay"))
 
-    config.get("crosshair") !== null ? log.info("crosshair : " + config.get("crosshair")) : (config.set("crosshair", "https://namekujilsds.github.io/CROSSHAIR/img/Cross-lime.png"), log.info("Set value for crosshair"))
-    // config.get("fpsDisplay") ? log.info(config.get("fpsDisplay")) : (config.set("fpsDisplay", true), log.info("Set value for fpsDisplay"))
-    // config.get("fpsPosition") ? log.info(config.get("fpsPosition")) : (config.set("fpsPosition", "bottomRight"), log.info("Set value for fpsPosition"))
-    config.get("enableCrosshair") !== null ? log.info("enableCrosshair : " + config.get("enableCrosshair")) : (config.set("enableCrosshair", true), log.info("Set value for enableCrosshair"))
-    config.get("unlimitedFps") !== null ? log.info("unlimitedFps : " + config.get("unlimitedFps")) : (config.set("unlimitedFps", true), log.info("Set value for unlimitedFps"))
-    config.get("defPage") !== null ? log.info("defPage : " + config.get("defPage")) : (config.set("defPage", "default"), log.info("Set value for defPage"))
-    config.get("swapper") !== null ? log.info("swapper : " + config.get("swapper")) : (config.set("swapper", true), log.info("Set value for swapper"))
-    config.get("angleType") !== null ? log.info("angleType : " + config.get("angleType")) : (config.set("angleType", "default"), log.info("Set value for angleType"))
-    config.get("customCSS") !== null ? log.info("customCSS : " + config.get("customCSS")) : (config.set("customCSS", "@import url('https://namekujilsds.github.io/VVC/default.css');"), log.info("Set value for customCSS"))
-    config.get("betterDebugDisplay") !== null ? log.info("betterDebugDisplay : " + config.get("betterDebugDisplay")) : (config.set("betterDebugDisplay", false), log.info("Set value for betterDebugDisplay"))
-    // config.get("adBlocker") === !null ? log.info("adBlocker : " + config.get("adBlocker")) : (config.set("adBlocker", false), log.info("Set value for adBlocker"));
-}
 app.on("ready", () => {
-    testConfigs()
+    // testConfigs()
     createSplash()
 })
