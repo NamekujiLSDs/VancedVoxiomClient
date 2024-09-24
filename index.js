@@ -15,6 +15,7 @@ Object.defineProperty(app, 'isPackaged', {
 });
 
 let mainWindow
+let keyWindow
 let splashWindow
 
 //カスタムプロトコルの登録
@@ -56,7 +57,7 @@ function createSplash() {
             updateCheck = setTimeout(() => {
                 splashWindow.webContents.send('status', 'Update check error!')
                 setTimeout(() => {
-                    createMain()
+                    createKeyInput()
                 }, 1000)
             }, 15000)
         })
@@ -74,14 +75,14 @@ function createSplash() {
                 'You are using the latest version!'
             )
             setTimeout(() => {
-                createMain()
+                createKeyInput()
             }, 1000)
         })
         autoUpdater.on('error', e => {
             if (updateCheck) clearTimeout(updateCheck)
             splashWindow.webContents.send('status', 'Error!' + e.name)
             setTimeout(() => {
-                createMain()
+                createKeyInput()
             }, 1000)
         })
         autoUpdater.on('download-progress', i => {
@@ -103,6 +104,17 @@ function createSplash() {
         splashWindow.show()
         update()
     })
+}
+//キーを入力させる
+//キーはどんなキーがいいかなぁ＾＾
+const createKeyInput = () => {
+    keyWindow = new BrowserWindow({
+        show: true,
+        webPreferences: {
+            preload: path.join(__dirname, "./js/key.js")
+        },
+    })
+    keyWindow.webContents.loadFile("./html/key.html")
 }
 //メインウィンドウを作るやつ
 const createMain = async () => {
@@ -226,9 +238,6 @@ const createMain = async () => {
             callback({})
         }
     })
-    // メインウィンドウに設定の一覧を送信する
-    let settingListData = JSON.parse(fs.readFileSync("./js/setting.json", "utf8"));
-    mainWindow.webContents.send("setList",settingListData)
 }
 function containsAnySubstr(str, substrings) {
     return substrings.some(substring => str.includes(substring));
@@ -273,6 +282,10 @@ ipcMain.on("appVer", e => {
     e.sender.send("appVerRe", app.getVersion())
 })
 
+ipcMain.handle("settingDom", () => {
+    let dom = config.get("unlimitedFps")
+    return dom
+})
 //いつもの
 const initFlags = () => {
     const flaglist = [

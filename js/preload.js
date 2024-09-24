@@ -3,26 +3,13 @@ const { captureRejectionSymbol } = require("events");
 const { createWriteStream } = require("fs");
 const path = require("path")
 
+contextBridge.exposeInMainWorld("vvc", {
+    changeSettingVal: (v) => ipcRenderer.send("changeSettingVal", v)
+})
 let setList
-ipcRenderer.on("reload", () => { console.log("reloaddd") })
-ipcRenderer.on("setList", (e, v) => { console.log(v), setList = v })
+ipcRenderer.on("reload", () => location.reload())
 
-let settingWindow = `<div id="closer"></div><div id="settingWindow"><h2 id="windowTitle">Client Settings</h2>`
-const createSettingWindow = () => {
-    Object.values(setList).forEach((v) => {
-        switch (v.type) {
-            case ("checkbox"):
-                settingWindow += `<div class="setBox"><label for="${v.id}">${v.name}<input type="checkbox" name="${v.id}" id="${v.id}">
-            </label></div>`;
-            case ("select"):
-                "";
-            case ("join"):
-                "";
-            case ("inv"):
-                "";
-        }
-    })
-    settingWindow += `</div>`
+document.addEventListener("DOMContentLoaded", async () => {
+    let settingWindow = await ipcRenderer.invoke("settingDom")
     console.log(settingWindow)
-}
-createSettingWindow()
+})
