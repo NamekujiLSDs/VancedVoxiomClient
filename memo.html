@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="closer"></div>
+    <div id="settingWindow">
+        <h2 id="windowTitle">VVC Settings</h2>
+        <div id="settingWindowContent">
+
+            <div class="setBox">
+                <div class="setName">Enable Custom Crosshair</div>
+                <div class="setInp">
+                    <input type="checkbox" name="enableCustomCrosshair" id="enableCustomCrosshair">
+                </div>
+            </div>
+            <div class="setBox">
+                <div class="setName">Custom Crosshair Type</div>
+                <div class="setInp">
+                    <select name="crosshairType" id="crosshairType">
+                        <option value="image">Image</option>
+                        <option value="precision">Precision</option>
+                        <option value="circle">Circle</option>
+                        <option value="square">Square</option>
+                    </select>
+                </div>
+            </div>
+            <div class="setBox image">
+                <div class="setName">Image URL</div>
+                <div class="setInp">
+                    <input type="url" name="crosshairImageUrl" id="crosshairImageUrl">
+                </div>
+            </div>
+            <div class="setBox image">
+                <div class="setName">Opacity</div>
+                <div class="setInp">
+                    <input type="number" name="imageOpacityNum" id="imageOpacityNum" max="1" min="0" step="0.1">
+                    <input type="range" name="imageOpacitySlider" id="imageOpacitySlider" max="1" min="0" step="0.1">
+                </div>
+            </div>
+            <div class="setBox image">
+                <div class="setName">Height</div>
+                <div class="setInp">
+                    <input type="number" name="imageHeightNum" id="imageHeightNum" max="2000" step="1" min="1">
+                    <input type="range" name="imageHeightSlider" id="imageHeightSlider" max="2000" step="1" min="1">
+                </div>
+            </div>
+            <div class="setBox image">
+                <div class="setName">Width</div>
+                <div class="setInp">
+                    <input type="number" name="imageWidthNum" id="imageWidthNum" max="2000" step="1" min="1">
+                    <input type="range" name="imageWidthSlider" id="imageWidthSlider" max="2000" step="1" min="1">
+                </div>
+            </div>
+            <div class="setBox precision">
+                <div class="setName">Crosshair Color</div>
+                <div class="setInp">
+                    <input type="color" name="precisionColor" id="precisionColor">
+                </div>
+            </div>
+            <div class="setBox precision">
+                <div class="setName">Width</div>
+                <div class="setInp">
+                    <input type="number" name="precisionWidthNum" id="precisionWidthNum" max="10" min="1" step="1">
+                    <input type="range" id="precisionWidthSlider" max="10" min="1" step="1">
+                </div>
+            </div>
+            <div class="setBox precision">
+                <div class="setName">Length</div>
+                <div class="setInp">
+                    <input type="number" name="precisionLengthNum" id="precisionLengthNum" max="50" min="1" step="1">
+                    <input type="range" id="precisionLengthSlider" max="50" min="1" step="1">
+                </div>
+            </div>
+            <div class="setBox precision">
+                <div class="setName">Gap</div>
+                <div class="setInp">
+                    <input type="number" name="precisionGapNum" id="precisionGapNum" max="50" min="0" step="0">
+                    <input type="range" name="precisionGapSlider" id="precisionGapSlider" max="50" min="0" step="0">
+                </div>
+            </div>
+            <div class="setBox precision">
+                <div class="setName">Border</div>
+                <div class="setInp">
+                    <input type="checkbox" name="precisionBorder" id="precisionBorder">
+                </div>
+            </div>
+            <div class="setBox precision">
+                <div class="setName">Border Color</div>
+                <div class="setInp">
+                    <input type="color" name="precisionBorderColor" id="precisionBorderColor">
+                </div>
+            </div>
+            <div class="setBox precision">
+                <div class="setName">Border Width</div>
+                <div class="setInp">
+                    <input type="number" name="precisionBorderWidthNum" id="precisionBorderWidthNum" max="10" min="0"
+                        step="1">
+                    <input type="range" name="precisionBorderWidthSlider" id="precisionBorderWidthSlider" max="10"
+                        min="0" step="1">
+                </div>
+            </div>
+            <div class="setBox precision">
+                <div class="setName">Dot</div>
+                <div class="setInp">
+                    <input type="checkbox" name="precisionDot" id="precisionDot">
+                </div>
+            </div>
+            <div class="setBox precision">
+                <div class="setName">Dot Type</div>
+                <div class="setInp">
+                    <select name="precisionDotType" id="precisionDotType">
+                        <option value="circle">Circle</option>
+                        <option value="square">Square</option>
+                    </select>
+                </div>
+            </div>
+            <div class="setBox precision">
+                <div class="setName">Dot size</div>
+                <div class="setInp">
+                    <input type="number" name="precisionDotSizeNum" id="precisionDotSizeNum" max="10" min="0.1">
+                    <input type="range" name="precisionDotSizeSlider" id="precisionDotSizeSlider" max="10" min="1">
+                </div>
+            </div>
+            <div class="setBox circle">
+                <div class="setName">Color</div>
+                <div class="setInp">
+                    <input type="color" name="circleColor" id="circleColor">
+                </div>
+            </div>
+            <div class="setBox circle">
+                <div class="setName">Radius</div>
+                <div class="setInp">
+                    <input type="number" name="circleRadiusNum" id="circleRadiusNum" min="0" max="50" step="1">
+                    <input type="range" name="circleRadiusSlider" id="circleRadiusSlider" min="0" max="50" step="1">
+                </div>
+            </div>
+            <div class="setBox circle">
+                <div class="setName">Fill</div>
+                <div class="setInp">
+                    <input type="checkbox" name="circleFill" id="circleFill">
+                </div>
+            </div>
+            <div class="setBox circle">
+                <div class="setName">Border</div>
+                <div class="setInp">
+                    <input type="checkbox" name="circleBorder" id="circleBorder">
+                </div>
+            </div>
+            <div class="setBox circle">
+                <div class="setName">Border Color</div>
+                <div class="setInp">
+                    <input type="color" name="circleBorderColor" id="circleBorderColor">
+                </div>
+            </div>
+            <div class="setBox circle">
+                <div class="setName">Border Width</div>
+                <div class="setInp">
+                    <input type="number" name="circleBorderWidthNum" id="circleBorderWidthNum" max="10" min="0"
+                        step="1">
+                    <input type="range" name="circleBorderWidthSlider" id="circleBorderWidthSlider" max="10" min="0"
+                        step="1">
+                </div>
+            </div>
+            <div class="setBox circle">
+                <div class="setName">Dot</div>
+                <div class="setInp">
+                    <input type="checkbox" name="circleDot" id="circleDot">
+                </div>
+            </div>
+            <div class="setBox circle">
+                <div class="setName">Dot Color</div>
+                <div class="setInp">
+                    <input type="color" name="circleDotColor" id="circleDotColor">
+                </div>
+            </div>
+            <div class="setBox circle">
+                <div class="setName">Dot Size</div>
+                <div class="setInp">
+                    <input type="number" name="circleDotSizeNum" id="circleDotSizeNum" max="10" min="0" step="1">
+                    <input type="range" name="circleDotSizeSlider" id="circleDotSizeSlider" max="10" min="0" step="1">
+                </div>
+            </div>
+            <div class="setBox square">
+                <div class="setName">Color</div>
+                <div class="setInp">
+                    <input type="color" name="squareColor" id="squareColor">
+                </div>
+            </div>
+            <div class="setBox square">
+                <div class="setName">Size</div>
+                <div class="setInp">
+                    <input type="number" name="squareSizeNum" id="squareSizeNum" max="50" min="0" step="1">
+                    <input type="range" name="squareSizeSlider" id="squareSizeSlider" max="50" min="0" step="1">
+                </div>
+            </div>
+            <div class="setBox square">
+                <div class="setName">Fill</div>
+                <div class="setInp">
+                    <input type="checkbox" name="squareFill" id="squareFill">
+                </div>
+            </div>
+            <div class="setBox square">
+                <div class="setName">Border</div>
+                <div class="setInp">
+                    <input type="checkbox" name="squareBorder" id="squareBorder">
+                </div>
+            </div>
+            <div class="setBox square">
+                <div class="setName">Border Color</div>
+                <div class="setInp">
+                    <input type="color" name="squareBorderColor" id="squareBorderColor">
+                </div>
+            </div>
+            <div class="setBox square">
+                <div class="setName">Border Width</div>
+                <div class="setInp">
+                    <input type="number" name="squareBorderWidthNum" id="squareBorderWidthNum" max="10" min="0"
+                        step="1">
+                    <input type="range" name="squareBorderWidthSlider" id="squareBorderWidthSlider" max="10" min="0"
+                        step="1">
+                </div>
+            </div>
+
+            <div class="setBox">
+                <div class="setName">Unlimited FPS</div>
+                <div class="setInp">
+                    <input type="checkbox" name="unlimitedFps" id="unlimitedFps">
+                </div>
+            </div>
+            <div class="setBox">
+                <div class="setName">Enable Resource Swapper</div>
+                <div class="setInp">
+                    <input type="checkbox" name="enableSwapper" id="enableSwapper">
+                </div>
+            </div>
+            <div class="setBox">
+                <div class="setName"></div>
+                <div class="setInp"></div>
+            </div>
+            <div class="setBox">
+                <div class="setName"></div>
+                <div class="setInp"></div>
+            </div>
+            <div class="setBox">
+                <div class="setName"></div>
+                <div class="setInp"></div>
+            </div>
+            <div class="setBox">
+                <div class="setName"></div>
+                <div class="setInp"></div>
+            </div>
+            <div class="setBox">
+                <div class="setName"></div>
+                <div class="setInp"></div>
+            </div>
+            <div class="setBox">
+                <div class="setName"></div>
+                <div class="setInp"></div>
+            </div>
+        </div>
+    </div>
+    <link rel="stylesheet" href="style.css">
+</body>
+
+</html>
