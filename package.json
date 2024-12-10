@@ -1,6 +1,6 @@
 {
   "name": "vanced-voxiom-client",
-  "version": "3.4.3",
+  "version": "999.999.999",
   "description": "Discontinued unofficial Voxiom client",
   "main": "index.js",
   "devDependencies": {
